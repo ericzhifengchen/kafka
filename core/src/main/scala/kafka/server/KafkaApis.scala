@@ -2456,6 +2456,7 @@ class KafkaApis(val requestChannel: RequestChannel,
             setHost(node.host).
             setPort(node.port).
             setRack(node.rack).
+            setUPod(node.pod).
             setIsFenced(node.isFenced))
           }
         }

@@ -112,6 +112,7 @@ class MetadataCacheTest {
         .setBrokerId(brokerId)
         .setEndPoints(endpoints(brokerId))
         .setRack("rack1")
+        .setUPod("pod")
     }
 
     val topic0Record = new TopicRecord().setName(topic0).setTopicId(topicIds.get(topic0))
@@ -374,6 +375,7 @@ class MetadataCacheTest {
     val brokers = Seq(new RegisterBrokerRecord()
       .setBrokerId(0)
       .setRack("rack1")
+      .setUPod("pod")
       .setFenced(false)
       .setEndPoints(endpoints))
 
@@ -527,6 +529,7 @@ class MetadataCacheTest {
         .setBrokerId(brokerId)
         .setFenced(brokerId == fencedBrokerId)
         .setRack("rack" + (brokerId % 3))
+        .setUPod("pod")
         .setEndPoints(new BrokerEndpointCollection(
           Seq(new BrokerEndpoint()
             .setHost("foo" + brokerId)
@@ -870,6 +873,7 @@ class MetadataCacheTest {
       .setBrokerId(0)
       .setBrokerEpoch(brokerEpoch)
       .setRack("rack1")
+      .setUPod("pod")
       .setEndPoints(new BrokerEndpointCollection(
         Seq(new BrokerEndpoint()
           .setHost("foo")
@@ -1019,4 +1023,29 @@ class MetadataCacheTest {
     setLeader(-2).
     setIsr(java.util.Arrays.asList(7, 8, 9)).
     setReplicas(java.util.Arrays.asList(7, 8, 9))
+
+  @ParameterizedTest
+  @MethodSource(Array("cacheProvider"))
+  def testGetClusterMetadataWithPod(cache: MetadataCache): Unit = {
+    val securityProtocol = SecurityProtocol.PLAINTEXT
+    val listenerName = ListenerName.forSecurityProtocol(securityProtocol)
+    val brokers = Seq(new RegisterBrokerRecord()
+      .setBrokerId(0)
+      .setFenced(false)
+      .setBrokerEpoch(brokerEpoch)
+      .setRack("rack1")
+      .setUPod("pod")
+      .setEndPoints(new BrokerEndpointCollection(
+        Seq(new BrokerEndpoint()
+          .setHost("foo")
+          .setPort(9092)
+          .setSecurityProtocol(securityProtocol.id)
+          .setName(listenerName.value)
+        ).iterator.asJava)))
+
+    MetadataCacheTest.updateCache(cache, brokers)
+    val aliveBroker = cache.getAliveBrokerNodes(listenerName).iterator().next()
+    assertEquals("rack1", aliveBroker.rack)
+    assertEquals("pod", aliveBroker.pod)
+  }
 }

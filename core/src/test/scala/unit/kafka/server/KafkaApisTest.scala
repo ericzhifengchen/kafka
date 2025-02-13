@@ -4218,7 +4218,7 @@ class KafkaApisTest extends Logging {
         .setName(plaintextListener.value)
     )
     MetadataCacheTest.updateCache(metadataCache,
-      Seq(new RegisterBrokerRecord().setBrokerId(0).setRack("rack").setFenced(false).setEndPoints(endpoints))
+      Seq(new RegisterBrokerRecord().setBrokerId(0).setRack("rack").setUPod("pod").setFenced(false).setEndPoints(endpoints))
     )
 
     // 2. Set up authorizer
@@ -9931,6 +9931,7 @@ class KafkaApisTest extends Logging {
       Seq(new RegisterBrokerRecord()
         .setBrokerId(brokerId)
         .setRack("rack")
+        .setUPod("pod")
         .setFenced(false)
         .setEndPoints(endpoints)))
 
@@ -9955,7 +9956,6 @@ class KafkaApisTest extends Logging {
   private def updateMetadataCacheWithInconsistentListeners(): (ListenerName, ListenerName) = {
     val plaintextListener = ListenerName.forSecurityProtocol(SecurityProtocol.PLAINTEXT)
     val anotherListener = new ListenerName("LISTENER2")
-
     val endpoints0 = new BrokerEndpointCollection()
     endpoints0.add(
       new BrokerEndpoint()
@@ -9982,8 +9982,8 @@ class KafkaApisTest extends Logging {
     )
 
     MetadataCacheTest.updateCache(metadataCache,
-      Seq(new RegisterBrokerRecord().setBrokerId(0).setRack("rack").setFenced(false).setEndPoints(endpoints0),
-      new RegisterBrokerRecord().setBrokerId(1).setRack("rack").setFenced(false).setEndPoints(endpoints1))
+      Seq(new RegisterBrokerRecord().setBrokerId(0).setRack("rack").setUPod("pod").setFenced(false).setEndPoints(endpoints0),
+      new RegisterBrokerRecord().setBrokerId(1).setRack("rack").setUPod("pod").setFenced(false).setEndPoints(endpoints1))
     )
 
     (plaintextListener, anotherListener)
@@ -10241,6 +10241,7 @@ class KafkaApisTest extends Logging {
     new RegisterBrokerRecord()
       .setBrokerId(brokerId)
       .setRack("rack")
+      .setUPod("pod")
       .setFenced(false)
       .setEndPoints(endpoints)
       .setBrokerEpoch(brokerEpoch)

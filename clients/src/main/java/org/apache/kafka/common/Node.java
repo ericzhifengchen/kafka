@@ -30,30 +30,31 @@ public class Node {
     private final String host;
     private final int port;
     private final String rack;
+    private final String pod;
     private final boolean isFenced;
 
     // Cache hashCode as it is called in performance sensitive parts of the code (e.g. RecordAccumulator.ready)
     private Integer hash;
 
     public Node(int id, String host, int port) {
-        this(id, host, port, null, false);
+        this(id, host, port, null, null, false);
     }
 
     public Node(int id, String host, int port, String rack) {
-        this.id = id;
-        this.idString = Integer.toString(id);
-        this.host = host;
-        this.port = port;
-        this.rack = rack;
-        this.isFenced = false;
+        this(id, host, port, rack, null);
     }
 
-    public Node(int id, String host, int port, String rack, boolean isFenced) {
+    public Node(int id, String host, int port, String rack, String pod) {
+        this(id, host, port, rack, pod, false);
+    }
+
+    public Node(int id, String host, int port, String rack, String pod, boolean isFenced) {
         this.id = id;
         this.idString = Integer.toString(id);
         this.host = host;
         this.port = port;
         this.rack = rack;
+        this.pod = pod;
         this.isFenced = isFenced;
     }
 
@@ -123,6 +124,20 @@ public class Node {
         return isFenced;
     }
 
+    /**
+     * True if this node has a defined pod
+     */
+    public boolean hasPod() {
+        return pod != null;
+    }
+
+    /**
+     * @return the pod of the node
+     */
+    public String pod() {
+        return pod;
+    }
+
     @Override
     public int hashCode() {
         Integer h = this.hash;
@@ -131,6 +146,7 @@ public class Node {
             result = 31 * result + id;
             result = 31 * result + port;
             result = 31 * result + ((rack == null) ? 0 : rack.hashCode());
+            result = 31 * result + ((pod == null) ? 0 : pod.hashCode());
             result = 31 * result + Objects.hashCode(isFenced);
             this.hash = result;
             return result;
@@ -150,12 +166,13 @@ public class Node {
             port == other.port &&
             Objects.equals(host, other.host) &&
             Objects.equals(rack, other.rack) &&
+            Objects.equals(pod, other.pod) &&
             Objects.equals(isFenced, other.isFenced);
     }
 
     @Override
     public String toString() {
-        return host + ":" + port + " (id: " + idString + " rack: " + rack + " isFenced: " + isFenced + ")";
+        return host + ":" + port + " (id: " + idString + " rack: " + rack + " pod: " + pod + " isFenced: " + isFenced + ")";
     }
 
 }
