@@ -19,6 +19,7 @@ package kafka.server
 
 import java.util.{Collections, OptionalLong, Properties}
 import kafka.utils.TestUtils
+import org.apache.kafka.clients.MockClient.RequestMatcher
 import org.apache.kafka.common.Node
 import org.apache.kafka.common.Uuid
 import org.apache.kafka.common.message.{BrokerHeartbeatResponseData, BrokerRegistrationResponseData}
@@ -26,9 +27,10 @@ import org.apache.kafka.common.protocol.Errors
 import org.apache.kafka.common.requests.{AbstractRequest, AbstractResponse, BrokerHeartbeatRequest, BrokerHeartbeatResponse, BrokerRegistrationRequest, BrokerRegistrationResponse}
 import org.apache.kafka.metadata.BrokerState
 import org.apache.kafka.raft.QuorumConfig
-import org.apache.kafka.server.config.{KRaftConfigs, ServerLogConfigs}
+import org.apache.kafka.server.config.{KRaftConfigs, ServerLogConfigs, ServerConfigs}
 import org.junit.jupiter.api.Assertions._
-import org.junit.jupiter.api.{AfterEach, Test, Timeout}
+import org.junit.jupiter.api.{AfterEach, Assertions, Test, Timeout}
+
 
 import java.util.concurrent.{CompletableFuture, Future}
 import scala.jdk.CollectionConverters._
@@ -53,6 +55,7 @@ class BrokerLifecycleManagerTest {
     properties.setProperty(KRaftConfigs.CONTROLLER_LISTENER_NAMES_CONFIG, "SSL")
     properties.setProperty(KRaftConfigs.INITIAL_BROKER_REGISTRATION_TIMEOUT_MS_CONFIG, "300000")
     properties.setProperty(KRaftConfigs.BROKER_HEARTBEAT_INTERVAL_MS_CONFIG, "100")
+    properties.setProperty(ServerConfigs.BROKER_POD_CONFIG, "pod1")
     properties
   }
 
@@ -91,7 +94,12 @@ class BrokerLifecycleManagerTest {
       assertEquals(1, context.mockChannelManager.unsentQueue.size)
       assertEquals(10L, context.mockChannelManager.unsentQueue.getFirst.request.build().asInstanceOf[BrokerRegistrationRequest].data().previousBrokerEpoch())
     }
-    context.mockClient.prepareResponseFrom(new BrokerRegistrationResponse(
+    val podMatches: RequestMatcher = { request =>
+      Assertions.assertNull(request.asInstanceOf[BrokerRegistrationRequest].data().rack())
+      Assertions.assertEquals("pod1", request.asInstanceOf[BrokerRegistrationRequest].data().uPod())
+      true
+    }
+    context.mockClient.prepareResponseFrom(podMatches, new BrokerRegistrationResponse(
       new BrokerRegistrationResponseData().setBrokerEpoch(1000)), controllerNode)
     TestUtils.retry(10000) {
       context.poll()

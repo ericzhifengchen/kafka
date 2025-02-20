@@ -84,6 +84,11 @@ class BrokerLifecycleManager(
   private val rack = config.rack
 
   /**
+   * The broker pod, or null if there is no configured pod.
+   */
+  private val pod = config.brokerPod
+
+  /**
    * How long to wait for registration to succeed before failing the startup process.
    */
   private val initialTimeoutNs =
@@ -378,6 +383,7 @@ class BrokerLifecycleManager(
         setIncarnationId(incarnationId).
         setListeners(_advertisedListeners).
         setRack(rack.orNull).
+        setUPod(pod.orNull).
         setPreviousBrokerEpoch(previousBrokerEpoch.orElse(-1L)).
         setLogDirs(sortedLogDirs)
     if (isDebugEnabled) {
