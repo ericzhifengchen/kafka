@@ -38,6 +38,7 @@ import org.apache.kafka.coordinator.group.Group.GroupType
 import org.apache.kafka.coordinator.group.modern.share.ShareGroupConfig
 import org.apache.kafka.coordinator.group.{GroupConfig, GroupCoordinatorConfig}
 import org.apache.kafka.coordinator.share.ShareCoordinatorConfig
+import org.apache.kafka.metadata.placement.CanarySpec
 import org.apache.kafka.network.SocketServerConfigs
 import org.apache.kafka.raft.{MetadataLogConfig, QuorumConfig}
 import org.apache.kafka.security.authorizer.AuthorizerUtils
@@ -214,6 +215,7 @@ class KafkaConfig private(doLog: Boolean, val props: util.Map[_, _])
   val controllerPerformanceSamplePeriodMs: Long = getLong(KRaftConfigs.CONTROLLER_PERFORMANCE_SAMPLE_PERIOD_MS)
   val controllerPerformanceAlwaysLogThresholdMs: Long = getLong(KRaftConfigs.CONTROLLER_PERFORMANCE_ALWAYS_LOG_THRESHOLD_MS)
   val brokerPod = Option(getString(ServerConfigs.BROKER_POD_CONFIG))
+  val canarySpec = new CanarySpec(getString(KRaftConfigs.CANARY_POD_NAME), getDouble(KRaftConfigs.CANARY_PARTITION_PERCENTAGE))
 
   private def parseProcessRoles(): Set[ProcessRole] = {
     val roles = getList(KRaftConfigs.PROCESS_ROLES_CONFIG).asScala.map {
